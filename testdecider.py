@@ -28,6 +28,25 @@ def default(o):
     if type(o) is datetime.date or type(o) is datetime.datetime:
         return o.isoformat()
 
+
+def schedule_activity_task(data):
+  return {
+            'decisionType': 'ScheduleActivityTask',
+            'scheduleActivityTaskDecisionAttributes': {
+                'activityType':{
+                    'name': TASKNAME,
+                    'version': VERSION
+                    },
+                'activityId': 'activityid-' + str(uuid.uuid4()),
+                'input': data,
+                'scheduleToCloseTimeout': 'NONE',
+                'scheduleToStartTimeout': 'NONE',
+                'startToCloseTimeout': 'NONE',
+                'heartbeatTimeout': 'NONE',
+                'taskList': {'name': TASKLIST},
+            }
+          }
+
 while True:
 
   newTask = swf.poll_for_decision_task(
@@ -42,12 +61,6 @@ while True:
   elif 'events' in newTask:
 
     count = count + 1
-
-
-  # "previousStartedEventId": 0, 
-  # "startedEventId": 3, 
-
-    # print("{}: {}".format(count, [int(evt['eventId']) for evt in newTask['events']]))
 
     time.sleep(1)
 
@@ -64,64 +77,25 @@ while True:
 
     print("events {} to {}".format(newTask['previousStartedEventId'] + 1, newTask['startedEventId']))
 
-    eventHistory = [evt for evt in newTask['events'] if evt['eventId'] <= newTask['startedEventId'] and evt['eventId'] > newTask['previousStartedEventId'] and not evt['eventType'].startswith('Decision')]
+    newEvents = [evt for evt in newTask['events'] if evt['eventId'] <= newTask['startedEventId'] and evt['eventId'] > newTask['previousStartedEventId']]
+    
+    eventHistory = [evt for evt in newEvents if not evt['eventType'].startswith('Decision')]
+
     lastEvent = eventHistory[0]
 
     if lastEvent['eventType'] == 'WorkflowExecutionStarted' and newTask['taskToken'] not in outstandingTasks:
       print "Dispatching task to worker", newTask['workflowExecution'], newTask['workflowType']
       swf.respond_decision_task_completed(
         taskToken=newTask['taskToken'],
-        decisions=[
-          {
-            'decisionType': 'ScheduleActivityTask',
-            'scheduleActivityTaskDecisionAttributes': {
-                'activityType':{
-                    'name': TASKNAME,
-                    'version': VERSION
-                    },
-                'activityId': 'activityid-' + str(uuid.uuid4()),
-                'input': '1',
-                'scheduleToCloseTimeout': 'NONE',
-                'scheduleToStartTimeout': 'NONE',
-                'startToCloseTimeout': 'NONE',
-                'heartbeatTimeout': 'NONE',
-                'taskList': {'name': TASKLIST},
-            }
-          }
-        ]
+        decisions=[schedule_activity_task('1')]
       )
       print "Task Dispatched:", newTask['taskToken']
 
     elif lastEvent['eventType'] == 'ActivityTaskCompleted':
       result = lastEvent['activityTaskCompletedEventAttributes']['result']
-      print(result)
       swf.respond_decision_task_completed(
         taskToken=newTask['taskToken'],
-        # decisions=[
-        #   {
-        #     'decisionType': 'CompleteWorkflowExecution',
-        #     'completeWorkflowExecutionDecisionAttributes': {
-        #       'result': 'success'
-        #     }
-        #   }
-        decisions=[
-          {
-            'decisionType': 'ScheduleActivityTask',
-            'scheduleActivityTaskDecisionAttributes': {
-                'activityType':{
-                    'name': TASKNAME,
-                    'version': VERSION
-                    },
-                'activityId': 'activityid-' + str(uuid.uuid4()),
-                'input': result,
-                'scheduleToCloseTimeout': 'NONE',
-                'scheduleToStartTimeout': 'NONE',
-                'startToCloseTimeout': 'NONE',
-                'heartbeatTimeout': 'NONE',
-                'taskList': {'name': TASKLIST},
-            }
-          }
-        ]
+        decisions=[schedule_activity_task(result)]
       )
       print "Task Completed!"
 
