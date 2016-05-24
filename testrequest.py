@@ -4,15 +4,15 @@ import boto3
 
 swf = boto3.client('swf')
 
-DOMAIN = "yourtestdomain"
-WORKFLOW = "yourtestworkflow"
-TASKNAME = "yourtaskname"
+DOMAIN = "rmechler_test"
+WORKFLOW = "rmechler_test_workflow_new"
+TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
-TASKLIST = "testlist"
+TASKLIST = "rmechler_test_tasklist"
 
 response = swf.start_workflow_execution(
   domain=DOMAIN,
-  workflowId='test-1001',
+  workflowId='test-2001',
   workflowType={
     "name": WORKFLOW,
     "version": VERSION

@@ -3,15 +3,15 @@
 import boto3
 from botocore.exceptions import ClientError
 
-DOMAIN = "yourtestdomain"
-WORKFLOW = "yourtestworkflow"
-TASKNAME = "yourtaskname"
+DOMAIN = "rmechler_test"
+WORKFLOW = "rmechler_test_workflow_new"
+TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
-TASKLIST = "testlist"
+TASKLIST = "rmechler_test_tasklist"
 
 swf = boto3.client('swf')
 
-try:
+try: 
   swf.register_domain(
     name=DOMAIN,
     description="Test SWF domain",
@@ -27,7 +27,7 @@ try:
     version=VERSION,
     description="Test workflow",
     defaultExecutionStartToCloseTimeout="250",
-    defaultTaskStartToCloseTimeout="NONE",
+    defaultTaskStartToCloseTimeout="15",
     defaultChildPolicy="TERMINATE",
     defaultTaskList={"name": TASKLIST}
   )
@@ -47,5 +47,4 @@ try:
   print "Test worker created!"
 except ClientError as e:
   print "Activity already exists: ", e.response.get("Error", {}).get("Code")
-
 
