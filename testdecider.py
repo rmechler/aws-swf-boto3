@@ -43,9 +43,13 @@ while True:
 
     count = count + 1
 
-    print("{}: {}".format(count, [int(evt['eventId']) for evt in newTask['events']]))
 
-    time.sleep(2)
+  # "previousStartedEventId": 0, 
+  # "startedEventId": 3, 
+
+    # print("{}: {}".format(count, [int(evt['eventId']) for evt in newTask['events']]))
+
+    time.sleep(1)
 
     # new_events = [evt for evt in newTask['events'] if not evt['eventId'] in seen_events]
 
@@ -58,7 +62,9 @@ while True:
     # with open("events.{}".format(count), "w") as f:
     #   f.write(json.dumps(new_events, indent=2, default=default))
 
-    eventHistory = [evt for evt in newTask['events'] if not evt['eventType'].startswith('Decision')]
+    print("events {} to {}".format(newTask['previousStartedEventId'] + 1, newTask['startedEventId']))
+
+    eventHistory = [evt for evt in newTask['events'] if evt['eventId'] <= newTask['startedEventId'] and evt['eventId'] > newTask['previousStartedEventId'] and not evt['eventType'].startswith('Decision')]
     lastEvent = eventHistory[0]
 
     if lastEvent['eventType'] == 'WorkflowExecutionStarted' and newTask['taskToken'] not in outstandingTasks:
