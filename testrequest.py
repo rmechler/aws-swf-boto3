@@ -10,9 +10,21 @@ TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
 TASKLIST = "rmechler_test_tasklist"
 
+WORKFLOW_ID = 'test-2001'
+
+
+# response = client.terminate_workflow_execution(
+#     domain=DOMAIN,
+#     workflowId=WORKFLOW_ID,
+#     runId='string',
+#     reason='string',
+#     details='string',
+#     childPolicy='TERMINATE'|'REQUEST_CANCEL'|'ABANDON'
+# )
+
 response = swf.start_workflow_execution(
   domain=DOMAIN,
-  workflowId='test-2003',
+  workflowId=WORKFLOW_ID,
   workflowType={
     "name": WORKFLOW,
     "version": VERSION
@@ -20,6 +32,7 @@ response = swf.start_workflow_execution(
   taskList={
       'name': TASKLIST
   },
+  taskStartToCloseTimeout='10',
   input=''
 )
 
