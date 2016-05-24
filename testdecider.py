@@ -11,7 +11,7 @@ botoConfig = Config(connect_timeout=50, read_timeout=70)
 swf = boto3.client('swf', config=botoConfig)
 
 DOMAIN = "rmechler_test"
-WORKFLOW = "rmechler_test_workflow_new"
+WORKFLOW = "rmechler_test_workflow"
 TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
 TASKLIST = "rmechler_test_tasklist"
@@ -34,7 +34,7 @@ while True:
     domain=DOMAIN,
     taskList={'name': TASKLIST},
     identity='decider-1',
-    reverseOrder=False)
+    reverseOrder=True)
 
   if 'taskToken' not in newTask:
     print "Poll timed out, no new task.  Repoll"
@@ -45,7 +45,7 @@ while True:
 
     print("{}: {}".format(count, [int(evt['eventId']) for evt in newTask['events']]))
 
-    time.sleep(5)
+    time.sleep(2)
 
     # new_events = [evt for evt in newTask['events'] if not evt['eventId'] in seen_events]
 
@@ -59,7 +59,7 @@ while True:
     #   f.write(json.dumps(new_events, indent=2, default=default))
 
     eventHistory = [evt for evt in newTask['events'] if not evt['eventType'].startswith('Decision')]
-    lastEvent = eventHistory[-1]
+    lastEvent = eventHistory[0]
 
     if lastEvent['eventType'] == 'WorkflowExecutionStarted' and newTask['taskToken'] not in outstandingTasks:
       print "Dispatching task to worker", newTask['workflowExecution'], newTask['workflowType']

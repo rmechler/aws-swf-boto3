@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 DOMAIN = "rmechler_test"
-WORKFLOW = "rmechler_test_workflow_new"
+WORKFLOW = "rmechler_test_workflow"
 TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
 TASKLIST = "rmechler_test_tasklist"
@@ -27,7 +27,7 @@ try:
     version=VERSION,
     description="Test workflow",
     defaultExecutionStartToCloseTimeout="250",
-    defaultTaskStartToCloseTimeout="15",
+    defaultTaskStartToCloseTimeout="NONE",
     defaultChildPolicy="TERMINATE",
     defaultTaskList={"name": TASKLIST}
   )

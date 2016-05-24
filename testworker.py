@@ -7,7 +7,7 @@ botoConfig = Config(connect_timeout=50, read_timeout=70)
 swf = boto3.client('swf', config=botoConfig)
 
 DOMAIN = "rmechler_test"
-WORKFLOW = "rmechler_test_workflow_new"
+WORKFLOW = "rmechler_test_workflow"
 TASKNAME = "rmechler_test_task"
 VERSION = "0.1"
 TASKLIST = "rmechler_test_tasklist"
