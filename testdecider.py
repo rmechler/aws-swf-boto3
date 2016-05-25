@@ -30,6 +30,7 @@ def default(o):
 
 
 def schedule_activity_task(data):
+  print("ScheduleActivityTask: {}".format(data))
   return {
             'decisionType': 'ScheduleActivityTask',
             'scheduleActivityTaskDecisionAttributes': {
@@ -79,23 +80,23 @@ while True:
 
     newEvents = [evt for evt in newTask['events'] if evt['eventId'] <= newTask['startedEventId'] and evt['eventId'] > newTask['previousStartedEventId']]
     
-    eventHistory = [evt for evt in newEvents if not evt['eventType'].startswith('Decision')]
+    events = [evt for evt in newEvents if not evt['eventType'].startswith('Decision')]
 
-    lastEvent = eventHistory[0]
+    # lastEvent = eventHistory[0]
 
-    if lastEvent['eventType'] == 'WorkflowExecutionStarted' and newTask['taskToken'] not in outstandingTasks:
-      print "Dispatching task to worker", newTask['workflowExecution'], newTask['workflowType']
-      swf.respond_decision_task_completed(
-        taskToken=newTask['taskToken'],
-        decisions=[schedule_activity_task('1')]
-      )
-      print "Task Dispatched:", newTask['taskToken']
+    decisions = []
+    for lastEvent in events:
 
-    elif lastEvent['eventType'] == 'ActivityTaskCompleted':
-      result = lastEvent['activityTaskCompletedEventAttributes']['result']
-      swf.respond_decision_task_completed(
-        taskToken=newTask['taskToken'],
-        decisions=[schedule_activity_task(result)]
-      )
-      print "Task Completed!"
+      if lastEvent['eventType'] == 'WorkflowExecutionStarted' and newTask['taskToken'] not in outstandingTasks:
+        print "Dispatching task to worker", newTask['workflowExecution'], newTask['workflowType']
+        decisions.append(schedule_activity_task('1'))
+        decisions.append(schedule_activity_task('1000'))
+
+      elif lastEvent['eventType'] == 'ActivityTaskCompleted':
+        decisions.append(schedule_activity_task(lastEvent['activityTaskCompletedEventAttributes']['result']))
+
+    swf.respond_decision_task_completed(
+      taskToken=newTask['taskToken'],
+      decisions=decisions
+    )
 
