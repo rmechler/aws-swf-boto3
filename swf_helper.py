@@ -30,7 +30,7 @@ def start_workflow(workflow_id, input_data='', workflowTimeout=3600, deciderTime
                                         input=input_data)
 
 
-def schedule_activity_task(task_list, input_data, delay='NONE'):
+def schedule_activity_task(task_list, input_data):
 
     LOGGER.debug("ScheduleActivityTask: {}".format(input_data))
     return {
@@ -43,7 +43,7 @@ def schedule_activity_task(task_list, input_data, delay='NONE'):
                 'activityId': 'activityid-' + str(uuid.uuid4()),
                 'input': input_data,
                 'scheduleToCloseTimeout': 'NONE',
-                'scheduleToStartTimeout': str(delay),
+                'scheduleToStartTimeout': 'NONE',
                 'startToCloseTimeout': 'NONE',
                 'heartbeatTimeout': 'NONE',
                 'taskList': {'name': task_list},
@@ -80,6 +80,15 @@ def poll_for_decision_task_and_events(identity=''):
                     event['activityTaskCompletedEventAttributes']['scheduledEvent'] = events[event['activityTaskCompletedEventAttributes']['scheduledEventId']]
 
             return task, new_events
+
+
+def get_completed_activity_task_list(event):
+    """Get task list for completed activity task event.
+    """
+    try:
+        return event['activityTaskCompletedEventAttributes']['scheduledEvent']['activityTaskScheduledEventAttributes']['taskList']['name']
+    except:
+        return None
 
 
 def respond_decision_task_completed(task, decisions):
