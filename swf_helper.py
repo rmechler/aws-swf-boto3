@@ -1,8 +1,6 @@
 import boto3
 from botocore.client import Config
 import uuid
-import json
-import datetime
 import logging
 
 logging.basicConfig()
@@ -66,34 +64,20 @@ def poll_for_decision_task_and_events(identity=''):
             LOGGER.info("Poll timed out, no new task.  Repoll")
 
         elif 'events' in task:
-            # TODO: need to handle paged results
+            # TODO: need to handle paged results?
 
-            # for event in task['events']:
-            #     event_id = event['eventId']
-
-            #     if (event_id <= task['startedEventId']
-            #         and event_id > task['previousStartedEventId']
-            #         and event['eventType'].startswith('Decision'):
-
+            # put all non-decision events in a dictionary
             events = {e['eventId']: e for e in task['events'] if not e['eventType'].startswith('Decision')}
 
+            # get just the new events for returning to caller
             new_events = [e for e in events.values() if (e['eventId'] <= task['startedEventId']
                                                          and e['eventId'] > task['previousStartedEventId'])]
-
-            # def default(o):
-            #     if type(o) is datetime.date or type(o) is datetime.datetime:
-            #         return o.isoformat()
-            # print(json.dumps(events, indent=2, default=default))
 
             # Inject the actual scheduled event ID so we can get things like the task list name.
             for event in new_events:
                 if event['eventType'] == 'ActivityTaskCompleted':
                     # TODO make sure we have the scheduled event first
                     event['activityTaskCompletedEventAttributes']['scheduledEvent'] = events[event['activityTaskCompletedEventAttributes']['scheduledEventId']]
-
-
-            # newEvents = [evt for evt in task['events'] if evt['eventId'] <= task['startedEventId'] and evt['eventId'] > task['previousStartedEventId']]
-            # return task, [evt for evt in newEvents if not evt['eventType'].startswith('Decision')]
 
             return task, new_events
 
